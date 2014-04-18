@@ -25,6 +25,8 @@
 #include <coin/NameOperation.h>
 #include <coin/Logger.h>
 
+#include <coinName/Names.h>
+
 #include <boost/lexical_cast.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
@@ -70,6 +72,20 @@ BlockChain::BlockChain(const Chain& chain, const string dataDir) :
     static string pragma_page_size = "PRAGMA page_size = " + lexical_cast<string>(page_size);
     static string pragma_cache_size = "PRAGMA cache_size = " + lexical_cast<string>(cache_size);
     
+    // check the user_version and the application_id:
+    /*
+    unsigned int application_id = query<int>("PRAGMA application_id");
+    unsigned int user_version = query<int>("PRAGMA user_version");
+    if (!application_id) {
+        // assume latest client version w.o. application id and user version
+        application_id = 0x434f494e; // ASCII: COIN
+        query<int>("PRAGMA application_id = 1129269582");
+        user_version = 70300; // 0.7.3.0, including the patch version
+        query<int>("PRAGMA user_version = 70300");
+    }
+    if (application_id != 0x434f494e)
+        throw runtime_error("BlockChain database not created by libcoin - magic mismatch");
+     */
     query("PRAGMA journal_mode=WAL");
     query("PRAGMA locking_mode=NORMAL");
     query("PRAGMA synchronous=OFF");
@@ -107,6 +123,8 @@ BlockChain::BlockChain(const Chain& chain, const string dataDir) :
               "count INTEGER," // count is the block count where the spendable is confirmed (this can also be found in the confirmation, but we need it here for fast access) -- coinbases have negative height - the group of spendables are those unspent with a count bigger than -(MAX(count)-100)
               "ocnf INTEGER REFERENCES Confirmations(cnf)" // if this is < 0 the coin is part of a coinbase tx
           ")");
+
+    // 
     
     query("CREATE INDEX IF NOT EXISTS UnspentsOut ON Unspents (ocnf)");
 
@@ -208,6 +226,14 @@ BlockChain::BlockChain(const Chain& chain, const string dataDir) :
         }
         _branches.clear();
     }
+/*
+    else {
+        // check that we are on the right chain - genesis block check
+        BlockIterator blk = _tree.find(_chain.genesisHash());
+        if (blk == _tree.end() || blk.height() != 0)
+            throw runtime_error("database and genesis mismatch - are you loading the wrong chain ?");
+    }
+ */
     updateBestLocator();
     log_info("BlockChain initialized - main best height: %d", _tree.height());
     
@@ -233,13 +259,6 @@ BlockChain::BlockChain(const Chain& chain, const string dataDir) :
             _immature_coinbases.insert(*u);
     }
     
-    
-    // experimental - delete 10 blocks from the chain:
-//    for (int i = 0; i < 10; i++) {
-//        rollbackBlock(getBestHeight()+1);
-//        _tree.pop_back();
-//    }
-
 }
 
 int BlockChain::purge_depth() const {
@@ -374,11 +393,11 @@ std::pair<Claims::Spents, int64_t> BlockChain::try_claim(const Transaction& txn,
                     // finally check for conflicts with the name database
                     int count = getNameAge(name_op.name());
                     if (name_op.reserve()) {
-                        if (count && count > _tree.count() - _chain.expirationDepth(_tree.count()))
+                        if (!isExpired (count))
                             throw Reject("Trying to reserve existing and not expired name: " + name_op.name());
                     }
                     else {
-                        if (count == 0 || count <= _tree.count() - _chain.expirationDepth(_tree.count()))
+                        if (isExpired (count))
                             throw Error("Trying to update expired or non existing name: " + name_op.name());
                     }
                 }
@@ -576,7 +595,7 @@ void BlockChain::updateName(const NameOperation& name_op, int64_t coin, int coun
     int latest_count = query<int>("SELECT count FROM Names WHERE name = ? ORDER BY count DESC LIMIT 1", raw_name);
     if (latest_count == 0 && raw_name.empty())
         latest_count = query<int>("SELECT count FROM Names WHERE name is null ORDER BY count DESC LIMIT 1");
-    bool expired = (latest_count == 0) ? true : (latest_count < count - _chain.expirationDepth(count));
+    const bool expired = isExpired (latest_count, count);
     if (name_op.reserve()) {
         if (count - name_op.input_count() < MIN_FIRSTUPDATE_DEPTH)
             throw Error("Tried to reserve a name less than 12 blocks after name_new: " + name_op.name());
@@ -596,6 +615,12 @@ void BlockChain::updateName(const NameOperation& name_op, int64_t coin, int coun
 int BlockChain::getNameAge(const std::string& name) const {
     Evaluator::Value raw_name(name.begin(), name.end());
     return query<int64_t>("SELECT count FROM Names WHERE name = ? ORDER BY count DESC LIMIT 1", raw_name);
+}
+
+NameDbRow BlockChain::getNameRow(const std::string& name) const {
+    boost::shared_lock< boost::shared_mutex > lock(_chain_and_pool_access);
+    Evaluator::Value raw_name(name.begin(), name.end());
+    return queryRow<NameDbRow(int64_t, int64_t, Evaluator::Value, Evaluator::Value)>("SELECT coin, count, name, value FROM Names WHERE name = ? ORDER BY count DESC LIMIT 1", raw_name);
 }
 
 string BlockChain::getCoinName(int64_t coin) const {
@@ -807,7 +832,6 @@ void BlockChain::getBlock(int count, Block& block) const {
         AuxPow auxpow;
         istringstream is(string(data.begin(), data.end()));
         is >> auxpow;
-//        CDataStream(data) >> auxpow;
         block.setAuxPoW(auxpow);
     }
     //    cout << block.getHash().toString() << endl;
@@ -1329,6 +1353,20 @@ int BlockChain::getHeight(const uint256 hash) const
         return abs(blk.height());
 
     return -1;
+}
+
+bool BlockChain::getCoinById(int64_t id, Unspent& res, int64_t count) const
+{
+    res = queryRow<Unspent(int64_t, uint256, unsigned int, int64_t, Script, int64_t, int64_t)>("SELECT coin, hash, idx, value, script, count, ocnf FROM Unspents WHERE coin = ?", id);
+    if (res.is_valid ())
+        return true;
+
+    if (count == 0)
+        return false;
+
+    res = queryRow<Unspent(int64_t, uint256, unsigned int, int64_t, Script, int64_t, int64_t)>("SELECT coin, hash, idx, value, script, ?, ocnf FROM Spendings WHERE coin = ?", count, id);
+
+    return res.is_valid ();
 }
 
 

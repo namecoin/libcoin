@@ -37,6 +37,7 @@
 
 class Transaction;
 class NameOperation;
+class NameDbRow;
 
 typedef std::vector<Transaction> Transactions;
 typedef std::map<uint256, Block> Branches;
@@ -169,6 +170,12 @@ public:
     void getUnspents(const Script& script, Unspents& unspents, unsigned int before = 0) const;
     
     int getHeight(Coin coin) const;
+
+    /// Retrieve the Unspents object corresponding to a coin by its ID
+    /// in the database.  If the ID is not in Unspents and count is non-zero,
+    /// we try to look it up in Spendings.  Return true if the coin was found,
+    /// false else.
+    bool getCoinById(int64_t id, Unspent& res, int64_t count = 0) const;
     
     //    int64_t value(Coin coin) const;
     
@@ -238,11 +245,32 @@ public:
         return _tree.best_invalid();
     }
     
-    /// NameCoin: getNameValue returns the most recent value for a name
-    int getNameAge(const std::string& name) const;
-    
-    /// NameCoin: getCoinName returns the name, if any for an unspent output
-    std::string getCoinName(int64_t coin) const;
+    /// Namecoin: Return expiration count at given block height.
+    inline int
+    getExpirationCount (int count) const
+    {
+      return count - _chain.expirationDepth (count);
+    }
+    inline int
+    getExpirationCount () const
+    {
+      return getExpirationCount (_tree.count ());
+    }
+
+    /// NameCoin: check if a name is expired.
+    inline bool
+    isExpired (int count) const
+    {
+      return isExpired (count, _tree.count ());
+    }
+    inline bool
+    isExpired (int count, int treeCount) const
+    {
+      return (count == 0 || count <= getExpirationCount (treeCount));
+    }
+
+    /// NameCoin: query for full row in Names table
+    NameDbRow getNameRow(const std::string& name) const;
     
     /// Get the locator for the best index
     const BlockLocator& getBestLocator() const;
@@ -286,6 +314,12 @@ protected:
     bool disconnectInputs(const Transaction& tx);    
     
     void deleteTransaction(const int64_t tx, Transaction &txn);
+    
+    /// NameCoin: getCoinName returns the name, if any for an unspent output
+    std::string getCoinName(int64_t coin) const;
+    
+    /// NameCoin: getNameValue returns the most recent value for a name
+    int getNameAge(const std::string& name) const;
     
 private:
     typedef std::map<uint256, Transaction> Txns;
