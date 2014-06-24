@@ -38,8 +38,8 @@ NameShow::operator() (const json_spirit::Array& params, bool fHelp)
   const std::string name = params[0].get_str ();
 
   /* Query for the name in the block chain database.  */
-  NameDbRow row = node.blockChain ().getNameRow (name);
-  NameStatus nm(row, node.blockChain ());
+  const NameDbRow row = node.blockChain ().getNameRow (name);
+  const NameStatus nm(row, node.blockChain ());
 
   /* Error if the name was not found.  */
   if (!row.found)
@@ -47,4 +47,37 @@ NameShow::operator() (const json_spirit::Array& params, bool fHelp)
                       "The requested name doesn't exist in the database.");
 
   return nm.toJson ();
+}
+
+/* ************************************************************************** */
+/* name_history implementation.  */
+
+json_spirit::Value
+NameHistory::operator() (const json_spirit::Array& params, bool fHelp)
+{
+  if (fHelp || params.size () != 1)
+    throw RPC::error (RPC::invalid_params,
+                      "name_history <name>\n"
+                      "Show current and known past information about <name>.");
+
+  /* FIXME: Correctly handle integer parameters (convert to string).  */
+  const std::string name = params[0].get_str ();
+
+  /* Query for the name in the block chain database.  */
+  const std::vector<NameDbRow> rows = node.blockChain ().getNameHistory (name);
+  if (rows.empty ())
+    throw RPC::error (RPC::name_not_found,
+                      "The requested name doesn't exist in the database.");
+
+  /* Build up an array from all the rows.  */
+  json_spirit::Array res;
+  for (std::vector<NameDbRow>::const_iterator i = rows.begin ();
+       i != rows.end (); ++i)
+    {
+      assert (i->found);
+      const NameStatus nm(*i, node.blockChain ());
+      res.push_back (nm.toJson ());
+    }
+
+  return res;
 }
