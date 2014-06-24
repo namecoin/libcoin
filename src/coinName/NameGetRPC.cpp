@@ -14,7 +14,6 @@
  * along with libcoin.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <coinName/NameGetRPC.h>
 
 #include <coinChain/NodeRPC.h>
@@ -23,6 +22,9 @@
 #include <coinHTTP/RPC.h>
 
 #include <coinName/Names.h>
+
+/* ************************************************************************** */
+/* name_show implementation.  */
 
 json_spirit::Value
 NameShow::operator() (const json_spirit::Array& params, bool fHelp)
@@ -44,19 +46,5 @@ NameShow::operator() (const json_spirit::Array& params, bool fHelp)
     throw RPC::error (RPC::name_not_found,
                       "The requested name doesn't exist in the database.");
 
-  const std::string txid = nm.getTransactionId ();
-  const std::string addr = nm.getAddress ();
-
-  json_spirit::Object res;
-  res.push_back (json_spirit::Pair ("name", nm.getName ()));
-  res.push_back (json_spirit::Pair ("value", nm.getValue ()));
-  res.push_back (json_spirit::Pair ("expires_in", nm.getExpireCounter ()));
-  if (nm.isExpired ())
-    res.push_back (json_spirit::Pair ("expired", 1));
-  if (txid != "")
-    res.push_back (json_spirit::Pair ("txid", txid));
-  if (addr != "")
-    res.push_back (json_spirit::Pair ("address", addr));
-
-  return res;
+  return nm.toJson ();
 }
