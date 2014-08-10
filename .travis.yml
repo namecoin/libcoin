@@ -30,3 +30,18 @@ script:
   - /usr/local/share/libcoin/bin/shamir
   - /usr/local/share/libcoin/bin/sqliterate
   - /usr/local/share/libcoin/bin/serialize
+before_deploy:
+  - mkdir deploy
+  - find bin lib | sort | zip -X@ deploy/namecoin-libcoin-travis-$TRAVIS_BRANCH-$TRAVIS_BUILD_NUMBER-$TRAVIS_OS_NAME-64-$CC.zip
+deploy:
+  provider: s3
+  access_key_id:
+    secure: "ih7mFPYMBdq/pxuQ2OPddYVnZqWkRAvneVXxL8snO0ajJlT2/l/Q2ri57v9ObUTB3PQQAqEg7dobaTnGpIv7KNEyNozQjSAVkb+oyYPuaOT/CvnAJdUUUXs+2RvkwSM7sY4ApVtTRlA1CeV1moQ9RG2NhDIsEOuHWgUeJf0jCWs="
+  secret_access_key:
+    secure: "NlO6+i0rM+ug+jobP02ky25H+UGi/eu5LFb+yMy3KcS73fooryjeYEgfVl+vwTlhqDQFmjWxu6X5XYdQ290dMoih1RhdRT7s/74ApTBXwL9JEolUurNQFGAOvkjvUH3MJlewGAu7elLkCcKM7i1zFi8V5mm+HYFHCDONE9WzikQ="
+  bucket: libcoin
+  endpoint: s.greenqloud.com
+  local-dir: deploy
+  on:
+    repo: namecoin/libcoin
+    all_branches: true
