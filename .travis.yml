@@ -41,6 +41,7 @@ deploy:
     secure: "NlO6+i0rM+ug+jobP02ky25H+UGi/eu5LFb+yMy3KcS73fooryjeYEgfVl+vwTlhqDQFmjWxu6X5XYdQ290dMoih1RhdRT7s/74ApTBXwL9JEolUurNQFGAOvkjvUH3MJlewGAu7elLkCcKM7i1zFi8V5mm+HYFHCDONE9WzikQ="
   bucket: libcoin
   endpoint: s.greenqloud.com
+  skip_cleanup: true
   local-dir: $TRAVIS_BUILD_DIR/deploy
   on:
     repo: namecoin/libcoin
