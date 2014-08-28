@@ -7,7 +7,7 @@ Further, the reference application, libcoind, is supported along with a number o
 To build libcoin on unix flavor systems, you need to install development versions of Berkeley DB (C++),
 Boost and OpenSSL and SQLite3. (Please note that on some systems OpenSSL does not contain ECDSA, if so,
 please install it yourselves). After installation of the necessary dependencies building follows the standard scheme:
-* ./configure
+`./configure`
 * make
 * sudo make install
 If you would like to tweak the installation, run the configure part manually by calling:
