@@ -362,7 +362,95 @@ private:
 
 extern const NamecoinChain namecoin;
 
-        
+class COINCHAIN_EXPORT NamecoinChain : public Chain {
+public:
+    NamecoinChain();
+    virtual const int protocol_version() const { return 37200; } // 0.3.72.0
+    virtual const Block& genesisBlock() const ;
+    virtual const uint256& genesisHash() const { return _genesis; }
+    virtual const int64_t subsidy(unsigned int height, uint256 prev = uint256(0)) const ;
+    virtual bool isStandard(const Transaction& tx) const ;
+    virtual const CBigNum proofOfWorkLimit() const { return CBigNum(~uint256(0) >> 32); }
+    virtual int nextWorkRequired(BlockIterator blk) const;
+    virtual const bool checkProofOfWork(const Block& block) const;
+    virtual bool adhere_aux_pow() const { return true; }
+    virtual bool adhere_names() const { return true; }
+    virtual bool enforce_name_rules(int count) const { // see: https://bitcointalk.org/index.php?topic=310954
+        if (count > 500000000)
+            return count > 1386499470; // the timestamp of block 150000 - so will always return true...
+        else
+            return count > 150000; // enforce from block 150000
+    }
+
+    
+    virtual bool checkPoints(const unsigned int height, const uint256& hash) const ;
+    virtual unsigned int totalBlocksEstimate() const;
+    
+    virtual int64_t min_fee() const {
+        return 500000;
+    }
+    
+    virtual int64_t network_fee(int count) const {
+        int height = count - 1;
+        // Speed up network fee decrease 4x starting at 24000
+        if (height >= 24000)
+            height += (height - 24000) * 3;
+        if ((height >> 13) >= 60)
+            return 0;
+        int64_t start = 50 * COIN;
+        int64_t res = start >> (height >> 13);
+        res -= (res >> 14) * (height % 8192);
+        return res;
+    }
+    
+    virtual int expirationDepth(int count) const {
+        int height = count - 1;
+        if (height < 24000)
+            return 12000;
+        if (height < 48000)
+            return height - 12000;
+        return 36000;
+    }
+
+    // To enable upgrade from one block version to another we define a quorum and a majority for acceptance
+    // of minimum this version as well as a quorum and majority for when the checks of that block version should be enforced.
+    virtual size_t accept_quorum() const { return 1000;}
+    virtual size_t accept_majority() const { return 1001; } // 95% of the last 1000
+    
+    virtual size_t enforce_quorum() const { return 1000; }
+    virtual size_t enforce_majority() const { return 1001; } // 75% of the last 1000
+    
+    const PubKey& alert_key() const { return _alert_key; }
+    
+    //    virtual char networkId() const { return 0x00; } // 0x00, 0x6f, 0x34 (bitcoin, testnet, namecoin)
+    virtual ChainAddress getAddress(PubKeyHash hash) const { return ChainAddress(0x34, hash); }
+    virtual ChainAddress getAddress(ScriptHash hash) const { throw std::runtime_error("ScriptHash not supported by Namecoin!"); }
+    virtual ChainAddress getAddress(std::string str) const {
+        ChainAddress addr(str);
+        if(addr.version() == 0x34)
+            addr.setType(ChainAddress::PUBKEYHASH);
+        else
+            throw std::runtime_error("ScriptHash not supported by Namecoin!");
+        return addr;
+    }
+    
+    virtual std::string signedMessageMagic() const { return "Namecoin Signed Message:\n"; }
+    
+    virtual const Magic& magic() const { return _magic; };
+    virtual unsigned short defaultPort() const { return 8334; }
+    
+    virtual unsigned int ircChannels() const { return 1; } // number of groups to try (100 for bitcoin, 2 for litecoin)
+    
+private:
+    Block _genesisBlock;
+    uint256 _genesis;
+    Magic _magic;
+    typedef std::map<int, uint256> Checkpoints;
+    Checkpoints _checkpoints;
+};
+
+extern const NamecoinChain namecoin;
+
 class COINCHAIN_EXPORT LitecoinChain : public Chain {
 public:
     LitecoinChain();
