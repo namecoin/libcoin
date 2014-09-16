@@ -595,53 +595,51 @@ bool NamecoinChain::checkPoints(const unsigned int height, const uint256& hash) 
     return hash == i->second;
 }
 
-// global const definition of the bitcoin chain
+// global const definition of the namecoin chain
 const NamecoinChain namecoin;
 
 RegisterChain<NamecoinChain> g_namecoin(namecoin);
 
-NamecoinChain::NamecoinChain() : Chain("namecoin", "NMC", 8), _genesis("000000000062b72c5e2ceb45fbc8587e807c155b0da735e6483dfba2f0a9c770") {
+NamecoinTestChain::NamecoinTestChain() : Chain("namecointest", "NMCTST", 8), _genesis("00000007199508e34a9ff81e6ec0c477a4cccff2a4767a8eee39c11db367b008") {
     _alert_key = ParseHex("04fc9702847840aaf195de8442ebecedf5b095cdbb9bc716bda9110971b28a49e0ead8564ff0db22209e0374782c093bb899692d524e9d6a6956e7c5ecbcd68284");
-    _magic[0] = 0xf9; _magic[1] = 0xbe; _magic[2] = 0xb4; _magic[3] = 0xfe;
-    const char* pszTimestamp = "... choose what comes next.  Lives of your own, or a return to chains. -- V";
+    _magic[0] = 0xfa; _magic[1] = 0xbf; _magic[2] = 0xb5; _magic[3] = 0xfe;
+    const char* pszTimestamp = "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks";
     Transaction txNew;
-    Script signature = Script() << 0x1c007fff << CBigNum(522) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
+    Script signature = Script() << 0x1d00ffff << CBigNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
     txNew.addInput(Input(Coin(), signature));
-    Script script = Script() << ParseHex("04b620369050cd899ffbbc4e8ee51e8c4534a855bb463439d63d235d4779685d8b6f4870a238cf365ac94fa13ef9a2a22cd99d0d5ee86dcabcafce36c7acf43ce5") << OP_CHECKSIG;
+    Script script = Script() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
     txNew.addOutput(Output(50 * COIN, script));
-    _genesisBlock = Block(1, uint256(0), uint256(0), 1303000001, 0x1c007fff, 0xa21ea192U);
+    _genesisBlock = Block(1, uint256(0), uint256(0), 1296688602, 0x1d07fff8, 0x16ec0bffU);
     _genesisBlock.addTransaction(txNew);
     _genesisBlock.updateMerkleTree(); // genesisBlock
     assert(_genesisBlock.getHash() == _genesis);
     
     _checkpoints = boost::assign::map_list_of
-    (  2016, uint256("0x0000000000660bad0d9fbde55ba7ee14ddf766ed5f527e3fbca523ac11460b92"))
-    (  4032, uint256("0x0000000000493b5696ad482deb79da835fe2385304b841beef1938655ddbc411"))
-    (  6048, uint256("0x000000000027939a2e1d8bb63f36c47da858e56d570f143e67e85068943470c9"))
-    (  8064, uint256("0x000000000003a01f708da7396e54d081701ea406ed163e519589717d8b7c95a5"))
-    ( 10080, uint256("0x00000000000fed3899f818b2228b4f01b9a0a7eeee907abd172852df71c64b06"))
-    ( 12096, uint256("0x0000000000006c06988ff361f124314f9f4bb45b6997d90a7ee4cedf434c670f"))
-    ( 14112, uint256("0x00000000000045d95e0588c47c17d593c7b5cb4fb1e56213d1b3843c1773df2b"))
-    ( 16128, uint256("0x000000000001d9964f9483f9096cf9d6c6c2886ed1e5dec95ad2aeec3ce72fa9"))
-    ( 18940, uint256("0x00000000000087f7fc0c8085217503ba86f796fa4984f7e5a08b6c4c12906c05"))
-    ( 30240, uint256("0xe1c8c862ff342358384d4c22fa6ea5f669f3e1cdcf34111f8017371c3c0be1da"))
-    ( 57000, uint256("0xaa3ec60168a0200799e362e2b572ee01f3c3852030d07d036e0aa884ec61f203"))
-    (112896, uint256("0x73f880e78a04dd6a31efc8abf7ca5db4e262c4ae130d559730d6ccb8808095bf"))
-    (182000, uint256("0xd47b4a8fd282f635d66ce34ebbeb26ffd64c35b41f286646598abfd813cba6d9"))
+    ( 2016, uint256("0x00000000b9e4132e1a803114bc88df3e49184a3c794c01a6eac334f12f4ccadb"))
+    ( 4032, uint256("0x00000003fbc13a48b8de5c8742044c84b800edeabff8b39f7f23ac572c6d80ce"))
+    ( 8064, uint256("0xf594a75db40244bc7baa808a695f796ba81cae5bb48fa920e367cdd31dbfb0e3"))
+    ( 10080, uint256("0x398d44a1a6e58dce3f7463217f677c2532e42a83696dcc5d4d97329c00a10891"))
+    ( 12096, uint256("0x22c9278493cda563565fc2a4250eff48bd68ed40cb5fb30029ca08ea6120ddab"))
+    ( 14112, uint256("0x83bade3e3d88845eb52de90311a8017b1cdf725b15d19bc89c47a568f7b4e08c"))
+    ( 16128, uint256("0xf456354835623f733bb928ed77d97ae06b96ad6c40aba63f51f94f06e905effc"))
+    ( 18144, uint256("0xc0ec570117822ca3c76abd1d10449b283d8ad39c64290d6abafe2bed23917886"))
+    ( 34715, uint256("0x0000000580cf4342f869e278d94d7e67d2ac8cae4a411082e0fd518a8091ebf2"))
+    ( 48384, uint256("0x00000001d528af69dce584f882e3bdb36127104988607b726591cc5e62287922"))
+    ( 60480, uint256("0xd3af823c32e890ca589dd4277aa4d27b8cd290396b7e0eeeee5121481fd43ca5"))
     ;
     
 }
 
-unsigned int NamecoinChain::totalBlocksEstimate() const {
+unsigned int NamecoinTestChain::totalBlocksEstimate() const {
     return _checkpoints.rbegin()->first;
 }
 
 
-const Block& NamecoinChain::genesisBlock() const {
+const Block& NamecoinTestChain::genesisBlock() const {
     return _genesisBlock;
 }
 
-const int64_t NamecoinChain::subsidy(unsigned int height, uint256 prev) const {
+const int64_t NamecoinTestChain::subsidy(unsigned int height, uint256 prev) const {
     int64_t s = 50 * COIN;
     
     // Subsidy is cut in half every 4 years
@@ -650,8 +648,8 @@ const int64_t NamecoinChain::subsidy(unsigned int height, uint256 prev) const {
     return s;
 }
 
-bool NamecoinChain::isStandard(const Transaction& tx) const {
-    
+bool NamecoinTestChain::isStandard(const Transaction& tx) const {
+    /* TESTNET allows everything
     // Extremely large transactions with lots of inputs can cost the network
     // almost as much to process as they cost the sender in fees, because
     // computing signature hashes is O(ninputs*txsize). Limiting transactions
@@ -685,13 +683,13 @@ bool NamecoinChain::isStandard(const Transaction& tx) const {
             return false;
         }
     }
-    
+    */
     return true;
 }
 
 /// This function has changed as it served two purposes: sanity check for headers and real proof of work check. We only need the proofOfWorkLimit for the latter
 /// For namecoin we allow merged mining for the PoW!
-const bool NamecoinChain::checkProofOfWork(const Block& block) const {
+const bool NamecoinTestChain::checkProofOfWork(const Block& block) const {
     log_trace("Enter %s (block.version = %d)", __FUNCTION__, block.getVersion());
     // we accept aux pow all the time - the lockins will ensure we get the right chain
     // Prevent same work from being submitted twice:
@@ -711,8 +709,8 @@ const bool NamecoinChain::checkProofOfWork(const Block& block) const {
     }
     
     if (block.getVersion()&BLOCK_VERSION_AUXPOW) {
-        if (!block.getAuxPoW().Check(block.getHash(), block.getVersion()/BLOCK_VERSION_CHAIN_START)) {
-            log_error("CheckProofOfWork() : AUX POW is not valid");
+        if (!block.getAuxPoW().Check( block.getHash(), block.getVersion()/BLOCK_VERSION_CHAIN_START, true) ) {
+            log_error("CheckProofOfWork() : AUX POW is not valid"); //pass along true because we are ^testnet
             return false;
         }
         // Check proof of work matches claimed amount
@@ -732,7 +730,7 @@ const bool NamecoinChain::checkProofOfWork(const Block& block) const {
     return true;
 }
 
-int NamecoinChain::nextWorkRequired(BlockIterator blk) const {
+int NamecoinTestChain::nextWorkRequired(BlockIterator blk) const {
     const int64_t nTargetTimespan = 14 * 24 * 60 * 60; // two weeks
     const int64_t nTargetSpacing = 10 * 60;
     const int64_t nInterval = nTargetTimespan / nTargetSpacing;
@@ -740,7 +738,7 @@ int NamecoinChain::nextWorkRequired(BlockIterator blk) const {
     // Genesis block
     int h = blk.height();
     if (h == 0) // trick to test that it is asking for the genesis block
-        return 0x1c007fff;
+        return 0x1d00fff8;
     
     // Only change once per interval
     if ((h + 1) % nInterval != 0)
@@ -749,7 +747,7 @@ int NamecoinChain::nextWorkRequired(BlockIterator blk) const {
     // Go back by what we want to be 14 days worth of blocks
     BlockIterator former = blk - (nInterval-1);
     
-    if (h >= 19200 && (h+1 > nInterval))
+    if (h >= 0 && (h+1 > nInterval))
         former = blk - nInterval;
     
     // Limit adjustment step
@@ -778,7 +776,7 @@ int NamecoinChain::nextWorkRequired(BlockIterator blk) const {
     return bnNew.GetCompact();
 }
 
-bool NamecoinChain::checkPoints(const unsigned int height, const uint256& hash) const {
+bool NamecoinTestChain::checkPoints(const unsigned int height, const uint256& hash) const {
     Checkpoints::const_iterator i = _checkpoints.find(height);
     if (i == _checkpoints.end())
         return true;
@@ -786,10 +784,10 @@ bool NamecoinChain::checkPoints(const unsigned int height, const uint256& hash) 
     return hash == i->second;
 }
 
-// global const definition of the bitcoin chain
-const NamecoinChain namecoin;
+// global const definition of the namecoin testnet chain
+const NamecoinTestChain namecointest;
 
-RegisterChain<NamecoinChain> g_namecoin(namecoin);
+RegisterChain<NamecoinTestChain> g_namecointest(namecointest);
 
 LitecoinChain::LitecoinChain() : Chain("litecoin", "LTC", 8), _genesis("0x12a765e31ffd4059bada1e25190f6e98c99d9714d334efa41a195a7e7e04bfe2") {
     _alert_key = ParseHex("040184710fa689ad5023690c80f3a49c8f13f8d45b8c857fbcbc8bc4a8e4d3eb4b10f4d4604fa08dce601aaf0f470216fe1b51850b4acf21b179c45070ac7b03a9");    _magic[0] = 0xfb; _magic[1] = 0xc0; _magic[2] = 0xb6; _magic[3] = 0xdb; // Litecoin: increase each by adding 2 to bitcoin's value.
@@ -938,6 +936,7 @@ const uint256 LitecoinChain::getPoWHash(const Block& block) const {
     return hash;
 }
 
+// global const definition of the litecoin chain
 
 const LitecoinChain litecoin;
 
@@ -1128,7 +1127,7 @@ bool TerracoinChain::checkPoints(const unsigned int height, const uint256& hash)
     return hash == i->second;
 }
 
-// global const definition of the bitcoin chain
+// global const definition of the terracoin chain
 const TerracoinChain terracoin;
 
 DogecoinChain::DogecoinChain() : Chain("dogecoin", "DGE", 8), _genesis("0x1a91e3dace36e2be3bf030a65679fe821aa1d6ef92e7c9902eb318182c355691") {
@@ -1402,6 +1401,7 @@ const uint256 DogecoinChain::getPoWHash(const BlockHeader& block) const {
     return hash;
 }
 
+// global const definition of the dogecoin chain
 
 const DogecoinChain dogecoin;
 
@@ -1613,6 +1613,7 @@ const uint256 DogetestChain::getPoWHash(const Block& block) const {
     return hash;
 }
 
+// global const definition of the dogecoin testnet chain
 
 const DogetestChain dogetest;
 

@@ -41,7 +41,7 @@ public:
     
     friend std::istream& operator>>(std::istream& is, AuxPow& ap);
 
-    bool Check(uint256 hashAuxBlock, int nChainID) const;
+    bool Check(uint256 hashAuxBlock, int nChainID, bool isTestnet = false) const;
 
     uint256 GetParentBlockHash() const {
         return parentBlock.getHash();

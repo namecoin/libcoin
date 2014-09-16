@@ -43,6 +43,7 @@ Configuration::Configuration(int argc, char* argv[], const options_description& 
     ("testnet3", "Use the test network")
     ("litecoin", "Run as a litecoin client")
     ("namecoin", "Run as a namecoin client")
+    ("namecointest", "Run as a namecoin testnet client")
     ("dogecoin", "Run as a dogecoin client")
     ("dogetest", "Run as a dogecoin test client")
     ("ripple", "Run as a ripple client")

@@ -362,16 +362,17 @@ private:
 
 extern const NamecoinChain namecoin;
 
-class COINCHAIN_EXPORT NamecoinChain : public Chain {
+class COINCHAIN_EXPORT NamecoinTestChain : public Chain {
 public:
-    NamecoinChain();
+    NamecoinTestChain();
     virtual const int protocol_version() const { return 37200; } // 0.3.72.0
     virtual const Block& genesisBlock() const ;
     virtual const uint256& genesisHash() const { return _genesis; }
     virtual const int64_t subsidy(unsigned int height, uint256 prev = uint256(0)) const ;
     virtual bool isStandard(const Transaction& tx) const ;
-    virtual const CBigNum proofOfWorkLimit() const { return CBigNum(~uint256(0) >> 32); }
+    virtual const CBigNum proofOfWorkLimit() const { return CBigNum(~uint256(0) >> 28); }
     virtual int nextWorkRequired(BlockIterator blk) const;
+    virtual const int maxInterBlockTime() const { return 2*10*60; } //if 20 minutes of no new (2*10*60) blocks, lower target
     virtual const bool checkProofOfWork(const Block& block) const;
     virtual bool adhere_aux_pow() const { return true; }
     virtual bool adhere_names() const { return true; }
@@ -379,7 +380,7 @@ public:
         if (count > 500000000)
             return count > 1386499470; // the timestamp of block 150000 - so will always return true...
         else
-            return count > 150000; // enforce from block 150000
+            return count > 150001; // enforce from block 150000
     }
 
     
@@ -397,7 +398,7 @@ public:
             height += (height - 24000) * 3;
         if ((height >> 13) >= 60)
             return 0;
-        int64_t start = 50 * COIN;
+        int64_t start = 10 * CENT;
         int64_t res = start >> (height >> 13);
         res -= (res >> 14) * (height % 8192);
         return res;
@@ -423,11 +424,11 @@ public:
     const PubKey& alert_key() const { return _alert_key; }
     
     //    virtual char networkId() const { return 0x00; } // 0x00, 0x6f, 0x34 (bitcoin, testnet, namecoin)
-    virtual ChainAddress getAddress(PubKeyHash hash) const { return ChainAddress(0x34, hash); }
+    virtual ChainAddress getAddress(PubKeyHash hash) const { return ChainAddress(0x6F, hash); }
     virtual ChainAddress getAddress(ScriptHash hash) const { throw std::runtime_error("ScriptHash not supported by Namecoin!"); }
     virtual ChainAddress getAddress(std::string str) const {
         ChainAddress addr(str);
-        if(addr.version() == 0x34)
+        if(addr.version() == 0x6F)
             addr.setType(ChainAddress::PUBKEYHASH);
         else
             throw std::runtime_error("ScriptHash not supported by Namecoin!");
@@ -437,9 +438,9 @@ public:
     virtual std::string signedMessageMagic() const { return "Namecoin Signed Message:\n"; }
     
     virtual const Magic& magic() const { return _magic; };
-    virtual unsigned short defaultPort() const { return 8334; }
+    virtual unsigned short defaultPort() const { return 18334; }
     
-    virtual unsigned int ircChannels() const { return 1; } // number of groups to try (100 for bitcoin, 2 for litecoin)
+    virtual unsigned int ircChannels() const { return 0; } // number of groups to try (100 for bitcoin, 2 for litecoin)
     
 private:
     Block _genesisBlock;
@@ -449,7 +450,7 @@ private:
     Checkpoints _checkpoints;
 };
 
-extern const NamecoinChain namecoin;
+extern const NamecoinTestChain namecointest;
 
 class COINCHAIN_EXPORT LitecoinChain : public Chain {
 public:
