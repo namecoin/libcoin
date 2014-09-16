@@ -181,6 +181,11 @@ void ChatClient::handle_read_line(const boost::system::error_code& err, size_t b
                                 txstream << "JOIN #" << _channel << ss.str() << "\r";
                                 txstream <<  "WHO #" << _channel << ss.str() <<  "\r";
                             }
+                            else if ( _channels == 0 ) {
+                                txstream << "JOIN #" << _channel << "\r";
+                                txstream <<  "WHO #" << _channel << "\r";
+				//dirty fix to let namecoin-testnet join the "correct" irc channel
+			    }
                             else {
                                 txstream << "JOIN #" << _channel << "00\r";
                                 txstream <<  "WHO #" << _channel << "00\r";
@@ -216,7 +221,7 @@ void ChatClient::handle_read_line(const boost::system::error_code& err, size_t b
                     // index 7 is limited to 16 characters
                     // could get full length name at index 10, but would be different from join messages
                     name = words[7];
-                    log_debug("IRC got who\n");
+                    log_debug("IRC got who\n" + name );
                 }
                 
                 if (words[1] == "JOIN" && words[0].size() > 1) {
@@ -227,7 +232,7 @@ void ChatClient::handle_read_line(const boost::system::error_code& err, size_t b
                         name = words[0].substr(1, exclamation_pos-1); // the 1, -1 is due to the colon
                                                                       //                    if (strchr(pszName, '!'))
                                                                       //                        *strchr(pszName, '!') = '\0';
-                    log_debug("IRC got join\n");
+                    log_debug("IRC got join\n" + name);
                 }
                 
                 if (name[0] == 'u') {
