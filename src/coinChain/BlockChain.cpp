@@ -1107,13 +1107,20 @@ void BlockChain::append(const Block &block) {
         throw Error("Cannot accept orphan block: " + hash.toString());
 
     if (block.getBits() != _chain.nextWorkRequired(prev)) {
+        //detect namecoin testnet
+        bool isNamecoinTestnet = false;
+        uint256 nmctestgenesishash = uint256("0x07199508e34a9ff81e6ec0c477a4cccff2a4767a8eee39c11db367b008");
+        BlockIterator blk2 = _tree.find(nmctestgenesishash);
+        if (blk2 != _tree.end()) isNamecoinTestnet  = true;
+	string timetravel = string("Incorrect proof of work: " + lexical_cast<string>(block.getBits()) + " versus " + lexical_cast<string>(_chain.nextWorkRequired(prev)));
+	string powlimit = string("Incorrect proof of work (limit): " + lexical_cast<string>(block.getBits()) + " versus " + lexical_cast<string>(_chain.proofOfWorkLimit().GetCompact()));
         // check if we can allow a block to slip through due to max time:
         if (block.getTime() - (int)prev->time < _chain.maxInterBlockTime())
-            throw Error("Incorrect proof of work: " + lexical_cast<string>(block.getBits()) + " versus " + lexical_cast<string>(_chain.nextWorkRequired(prev)));
+            if (!isNamecoinTestnet) { throw Error(timetravel); } else { log_warn(timetravel); }
         else if ( block.getBits() != _chain.proofOfWorkLimit().GetCompact())
-            throw Error("Incorrect proof of work (limit): " + lexical_cast<string>(block.getBits()) + " versus " + lexical_cast<string>(_chain.proofOfWorkLimit().GetCompact()));
+            if (!isNamecoinTestnet) { throw Error(powlimit); } else { log_warn(powlimit); }
     }
-        
+
     if (block.getBlockTime() <= getMedianTimePast(prev))
         throw Error("Block's timestamp is too early");
 
