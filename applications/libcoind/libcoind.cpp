@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
             }
         }
         
-        // Else we start the bitcoin node and server!
+        // Else we start the namecoin node and server!
 
         asio::ip::tcp::endpoint proxy_server;
         if(conf.proxy().size()) {
@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
             proxy_server = asio::ip::tcp::endpoint(asio::ip::address_v4::from_string(host_port[0]), lexical_cast<short>(host_port[1]));
         }
         Node node(conf.chain(), conf.data_dir(), conf.listen(), lexical_cast<string>(conf.node_port()), proxy_server, conf.timeout()); // it is also here we specify the use of a proxy!
-        node.setClientVersion("libcoin/bitcoind", vector<string>());
+        node.setClientVersion("libcoin/namecoind", vector<string>(), 37654);
         node.verification(conf.verification());
         node.validation(conf.validation());
         node.persistence(conf.persistance());
@@ -187,7 +187,7 @@ int main(int argc, char* argv[])
         /// The Pool enables you to run a backend for a miner, i.e. your private pool, it also enables you to participate in the "Name of Pool"
         // We need a list of blocks for the shared mining
         //
-        ChainAddress address("17uY6a7zUidQrJVvpnFchD1MX1untuAufd");
+        ChainAddress address("muh4C4iuWBqkyfBJ3Wr3pJkM7irrXkXsa1"); //nmctest.net faucet address
         StaticPayee payee(address.getPubKeyHash());
         Pool pool(node, payee);
         
