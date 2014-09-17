@@ -253,8 +253,11 @@ void RequestHandler::async_exec(const Request& req, Reply& rep, const Completion
         Methods::iterator m = _methods.find(rpc.method());
         if (m != _methods.end()) {
             // check authorization
-            if (_auths.count(rpc.method()) && !_auths[rpc.method()].valid(req.basic_auth()))
-                throw Reply::unauthorized;
+            if (_auths.count(rpc.method()) && !_auths[rpc.method()].valid(req.basic_auth())) {
+	        throw Reply::unauthorized;
+		//throw rpc.response(RPC::internal_error, req.basic_auth());
+		//output the actual lowercase version of your auth base64 string
+            }
             
             // prepare for deferred execution
             rep.setMethod(m->second.get());
