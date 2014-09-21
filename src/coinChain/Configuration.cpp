@@ -162,7 +162,9 @@ Configuration::Configuration(int argc, char* argv[], const options_description& 
         _params.erase(_params.begin());
     }
     
-    _listen = args.count("nolisten") ? "" : "0.0.0.0";
+    _listen	= args.count("nolisten") ? ""   : "0.0.0.0";
+    _version	= args.count("version")  ? true : false;     
+    _help	= args.count("help")     ? true : false;
     _verification = strictness(verification);
     _validation = strictness(validation);
     _persistance = strictness(persistance);

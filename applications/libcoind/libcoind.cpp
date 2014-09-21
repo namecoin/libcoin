@@ -80,21 +80,11 @@ int main(int argc, char* argv[])
     try {
         
         Auth auth(conf.user(), conf.pass()); // if rpc_user and rpc_pass are not set, all authenticated methods becomes disallowed.
-        
-        // If we have params on the cmdline we run as a command line client contacting a server
-        if (conf.method() != "") {
-            if (conf.method() == "help") {
-                cout << "Usage: " << argv[0] << " [options] [rpc-command param1 param2 ...]\n";
-                cout << conf << "\n";
-                cout << "If no rpc-command is specified, " << argv[0] << " start up as a daemon, otherwise it offers commandline access to a running instance\n";
-                return 1;
-            }
-            
-            if (conf.method() == "version") {
-                cout << argv[0] << " version is: " << FormatVersion(LIBRARY_VERSION) << "\n";
-                return 1;
-            }
 
+        // If we have params on the cmdline we run as a command line client contacting a server
+
+        if (conf.method() != "") {
+            
             // create URL
             string url = conf.url();
             Client client;
@@ -120,6 +110,21 @@ int main(int argc, char* argv[])
                 return 1;
             }
         }
+        
+        // If we have help or version on the cmdline we display and then exit
+        
+        if (conf.help()) {
+            cout << "Usage: " << argv[0] << " [options] [rpc-command param1 param2 ...]\n";
+            cout << conf << "\n";
+            cout << "If no rpc-command is specified, " << argv[0] << " start up as a daemon, otherwise it offers commandline access to a running instance\n";
+            return 1;
+        }
+            
+        if (conf.version()) {
+            cout << argv[0] << " version is: " << FormatVersion(LIBRARY_VERSION) << "\n";
+            return 1;
+        }
+        
         
         // Else we start the namecoin node and server!
 
