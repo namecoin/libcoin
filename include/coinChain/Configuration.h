@@ -107,6 +107,12 @@ public:
     bool searchable() const {
         return _searchable;
     }
+    bool help() const {
+        return _help;
+    }
+    bool version() const {
+	return _version;
+    }
     friend std::ostream& operator<<(std::ostream& os, const Configuration&);
 private:
     boost::program_options::options_description _visible;
@@ -120,6 +126,7 @@ private:
     strings _params;
     std::string _proxy;
     std::string _listen;
+    bool _help, _version;
     bool _portmap, _gen, _ssl;
     Node::Strictness _verification, _validation, _persistance;
     bool _searchable;

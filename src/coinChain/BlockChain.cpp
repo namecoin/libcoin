@@ -267,7 +267,7 @@ int BlockChain::purge_depth() const {
 }
 
 void BlockChain::purge_depth(int purge_depth) {
-    if (purge_depth < _purge_depth)
+    if (purge_depth + 1 < _purge_depth)
         log_warn("Requested a purge_depth (Persistance setting) deeper than currently, please re-download the blockchain to enforce this!");
     _purge_depth = purge_depth;
     int current_depth = query<int64_t>("SELECT CASE WHEN COUNT(*)=0 THEN 0 ELSE MIN(count) END FROM Confirmations");
@@ -1112,13 +1112,14 @@ void BlockChain::append(const Block &block) {
         uint256 nmctestgenesishash = uint256("0x07199508e34a9ff81e6ec0c477a4cccff2a4767a8eee39c11db367b008");
         BlockIterator blk2 = _tree.find(nmctestgenesishash);
         if (blk2 != _tree.end()) isNamecoinTestnet  = true;
-	string timetravel = string("Incorrect proof of work: " + lexical_cast<string>(block.getBits()) + " versus " + lexical_cast<string>(_chain.nextWorkRequired(prev)));
-	string powlimit = string("Incorrect proof of work (limit): " + lexical_cast<string>(block.getBits()) + " versus " + lexical_cast<string>(_chain.proofOfWorkLimit().GetCompact()));
+        string timetravel = string("Incorrect proof of work: " + lexical_cast<string>(block.getBits()) + " versus " + lexical_cast<string>(_chain.nextWorkRequired(prev)));
+        string powlimit = string("Incorrect proof of work (limit): " + lexical_cast<string>(block.getBits()) + " versus " + lexical_cast<string>(_chain.proofOfWorkLimit().GetCompact()));
         // check if we can allow a block to slip through due to max time:
-        if (block.getTime() - (int)prev->time < _chain.maxInterBlockTime())
+        if (block.getTime() - (int)prev->time < _chain.maxInterBlockTime()) {
             if (!isNamecoinTestnet) { throw Error(timetravel); } else { log_warn(timetravel); }
-        else if ( block.getBits() != _chain.proofOfWorkLimit().GetCompact())
+        } else if ( block.getBits() != _chain.proofOfWorkLimit().GetCompact()) {
             if (!isNamecoinTestnet) { throw Error(powlimit); } else { log_warn(powlimit); }
+        }
     }
 
     if (block.getBlockTime() <= getMedianTimePast(prev))
