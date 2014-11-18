@@ -80,21 +80,11 @@ int main(int argc, char* argv[])
     try {
         
         Auth auth(conf.user(), conf.pass()); // if rpc_user and rpc_pass are not set, all authenticated methods becomes disallowed.
-        
-        // If we have params on the cmdline we run as a command line client contacting a server
-        if (conf.method() != "") {
-            if (conf.method() == "help") {
-                cout << "Usage: " << argv[0] << " [options] [rpc-command param1 param2 ...]\n";
-                cout << conf << "\n";
-                cout << "If no rpc-command is specified, " << argv[0] << " start up as a daemon, otherwise it offers commandline access to a running instance\n";
-                return 1;
-            }
-            
-            if (conf.method() == "version") {
-                cout << argv[0] << " version is: " << FormatVersion(LIBRARY_VERSION) << "\n";
-                return 1;
-            }
 
+        // If we have params on the cmdline we run as a command line client contacting a server
+
+        if (conf.method() != "") {
+            
             // create URL
             string url = conf.url();
             Client client;
@@ -121,7 +111,22 @@ int main(int argc, char* argv[])
             }
         }
         
-        // Else we start the bitcoin node and server!
+        // If we have help or version on the cmdline we display and then exit
+        
+        if (conf.help()) {
+            cout << "Usage: " << argv[0] << " [options] [rpc-command param1 param2 ...]\n";
+            cout << conf << "\n";
+            cout << "If no rpc-command is specified, " << argv[0] << " start up as a daemon, otherwise it offers commandline access to a running instance\n";
+            return 1;
+        }
+            
+        if (conf.version()) {
+            cout << argv[0] << " version is: " << FormatVersion(LIBRARY_VERSION) << "\n";
+            return 1;
+        }
+        
+        
+        // Else we start the namecoin node and server!
 
         asio::ip::tcp::endpoint proxy_server;
         if(conf.proxy().size()) {
@@ -132,7 +137,7 @@ int main(int argc, char* argv[])
             proxy_server = asio::ip::tcp::endpoint(asio::ip::address_v4::from_string(host_port[0]), lexical_cast<short>(host_port[1]));
         }
         Node node(conf.chain(), conf.data_dir(), conf.listen(), lexical_cast<string>(conf.node_port()), proxy_server, conf.timeout()); // it is also here we specify the use of a proxy!
-        node.setClientVersion("libcoin/bitcoind", vector<string>());
+        node.setClientVersion("libcoin/namecoind", vector<string>(), 37654);
         node.verification(conf.verification());
         node.validation(conf.validation());
         node.persistence(conf.persistance());
@@ -187,7 +192,7 @@ int main(int argc, char* argv[])
         /// The Pool enables you to run a backend for a miner, i.e. your private pool, it also enables you to participate in the "Name of Pool"
         // We need a list of blocks for the shared mining
         //
-        ChainAddress address("17uY6a7zUidQrJVvpnFchD1MX1untuAufd");
+        ChainAddress address("muh4C4iuWBqkyfBJ3Wr3pJkM7irrXkXsa1"); //nmctest.net faucet address
         StaticPayee payee(address.getPubKeyHash());
         Pool pool(node, payee);
         

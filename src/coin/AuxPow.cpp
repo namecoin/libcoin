@@ -27,13 +27,14 @@ istream& operator>>(istream& is, AuxPow& ap) {
 }
 
 
-bool AuxPow::Check(uint256 hashAuxBlock, int nChainID) const
+bool AuxPow::Check(uint256 hashAuxBlock, int nChainID, bool isTestnet) const
 {
+  //default to isTestnet false if nothing else is specified
     try {
         if (_index != 0)
             throw runtime_error("AuxPow is not a generate");
         
-        if (parentBlock.getVersion() / BLOCK_VERSION_CHAIN_START == nChainID)
+        if (!isTestnet && parentBlock.getVersion() / BLOCK_VERSION_CHAIN_START == nChainID)
             throw runtime_error("Aux POW parent has our chain ID");
         
         if (vChainMerkleBranch.size() > 30)

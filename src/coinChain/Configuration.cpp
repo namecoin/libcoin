@@ -43,6 +43,7 @@ Configuration::Configuration(int argc, char* argv[], const options_description& 
     ("testnet3", "Use the test network")
     ("litecoin", "Run as a litecoin client")
     ("namecoin", "Run as a namecoin client")
+    ("namecointest", "Run as a namecoin testnet client")
     ("dogecoin", "Run as a dogecoin client")
     ("dogetest", "Run as a dogecoin test client")
     ("ripple", "Run as a ripple client")
@@ -161,7 +162,9 @@ Configuration::Configuration(int argc, char* argv[], const options_description& 
         _params.erase(_params.begin());
     }
     
-    _listen = args.count("nolisten") ? "" : "0.0.0.0";
+    _listen	= args.count("nolisten") ? ""   : "0.0.0.0";
+    _version	= args.count("version")  ? true : false;     
+    _help	= args.count("help")     ? true : false;
     _verification = strictness(verification);
     _validation = strictness(validation);
     _persistance = strictness(persistance);

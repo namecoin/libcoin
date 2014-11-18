@@ -394,6 +394,14 @@ int main(int argc, char* argv[])
         server.registerMethod(method_ptr(new GetConnectionCount(node)));
         server.registerMethod(method_ptr(new GetDifficulty(node)));
         server.registerMethod(method_ptr(new GetInfo(node)));
+	
+	// Register Node methods specific to Namecoin
+	/*if (conf.chain().adhere_names()) {
+            server.registerMethod(method_ptr(new NameShow(node)));
+            server.registerMethod(method_ptr(new NameHistory(node)));
+            server.registerMethod(method_ptr(new NameScan(node)));
+            server.registerMethod(method_ptr(new NameFilter(node)));
+        }*/
         
         // Node methods relevant for coin explorer
         server.registerMethod(method_ptr(new GetBlock(node)));
