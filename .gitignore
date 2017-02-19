@@ -9,3 +9,10 @@ src/bitcoind
 *.o
 *.patch
 .bitcoin
+Makefile
+CMakeFiles
+*.cmake
+CMakeCache.txt
+bin
+lib
+install_manifest.txt
